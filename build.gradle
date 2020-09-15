@@ -1,0 +1,63 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+
+sourceCompatibility = 1.7
+compileJava.options.encoding = 'UTF-8' 
+version = '1.0'
+
+repositories {
+        jcenter()
+        maven {
+            name 'Maven Repository'
+            url "${repositoryMavenUrl}"
+        }
+
+        ivy {
+            name 'Ivy Repository'
+            url "${repositoryIvyUrl}"
+            layout "pattern",  {
+                artifact '[organisation]/[module]/[revision]/[type]s/[artifact]-[revision].[ext]'
+                ivy '[organisation]/[module]/[revision]/[type]s/[artifact].[ext]'
+                m2compatible = true
+            }
+        }
+    
+}
+
+dependencies {
+    compile 'org.slf4j:slf4j-api:1.7.21'
+    compile("org.springframework.boot:spring-boot-starter-web:1.4.2.RELEASE")
+}
+
+
+task copyJars(type: Copy) {  
+    from configurations.runtime  
+    into 'build/libs/lib'  
+}  
+  
+task copyConfigs(type: Copy) {  
+/*    
+    from 'configs/'  
+    into 'build/libs/configs'  
+*/
+}  
+  
+task generateJar(type: Jar, dependsOn: [copyJars, copyConfigs, jar]) {  
+    manifest {  
+        attributes ('Implementation-Title': 'Gradle',  
+                'Implementation-Version': version,  
+                'Main-Class': 'sample.main.Main',  
+                'Class-Path': configurations.compile.collect {'lib/' + it.getName()}.join(' ')  
+        )  
+    }  
+    into('') {  
+        from "$buildDir/classes/main"  
+        include('sample/')  
+    }  
+    into('') {  
+        from "$projectDir/src/main/resources"  
+    }  
+}  
+
+build.gradle
